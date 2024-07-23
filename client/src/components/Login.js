@@ -29,7 +29,7 @@ const Login = () => {
         if (typeof window !== "undefined") {
           setTimeout(() => {
             navigate("/home");
-          }, 2000);
+          }, 1000);
         }
       }
     } catch (err) {

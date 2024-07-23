@@ -5,7 +5,7 @@ dotenv.config();
 const cookieParser = require("cookie-parser");
 const morgan = require("morgan");
 let cors = require("cors");
-
+const path = require("path");
 const blogRoutes = require("./routes/blogRoutes");
 const userRoutes = require("./routes/userRoutes");
 const databaseDB = require("./config/db.config");
@@ -19,7 +19,7 @@ app.use(cors());
 
 app.use("/blog", blogRoutes);
 app.use("/users", userRoutes);
-
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 const port = process.env.PORT || 5005;
 app.listen(port, () => {
   console.log(`${port}-portda ishladi`);

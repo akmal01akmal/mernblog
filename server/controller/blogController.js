@@ -1,7 +1,5 @@
-// const mongoose = require("mongoose");
 const blogModel = require("../model/blogModel");
-// const bcrypt = require("bcryptjs");
-// const jwt = require("jsonwebtoken");
+
 const fs = require("fs");
 const addBlog = async (req, res) => {
   const { title, description } = req.body;
@@ -11,7 +9,7 @@ const addBlog = async (req, res) => {
     description: description,
     photo: filename,
   };
-  console.log(obj);
+
   try {
     const blog = new blogModel(obj);
     blog.save();
@@ -49,14 +47,14 @@ const getBlogSingle = async (req, res) => {
 };
 
 const updateBlog = async (req, res) => {
-  const { title, description } = req.body;
-  // const filename = req.file.filename;
+  const { title, description, photo } = req.body;
   const id = req.params.id;
-  const obj = {
+
+  let obj = {
     title: title,
     description: description,
+    photo: photo,
   };
-
   if (req.file !== undefined) {
     obj.photo = req.file.filename;
     const getFileData = await blogModel.find({ _id: id });
@@ -65,11 +63,10 @@ const updateBlog = async (req, res) => {
       console.log(err);
     });
   }
-  console.log(obj);
-
   try {
-    await blogModel.findByIdAndUpdate(id, obj);
+    await blogModel.findByIdAndUpdate(id, obj, { new: true });
     const newUpdateBlog = await blogModel.findById(id);
+
     res.status(200).json({ message: "update Blog", blog: newUpdateBlog });
   } catch (error) {
     res
@@ -82,7 +79,9 @@ const deleteBlog = async (req, res) => {
   const id = req.params.id;
   const deleteBlogphoto = await blogModel.find({ _id: id });
 
-  await fs.unlink("uploads/" + deleteBlogphoto[0].photo);
+  await fs.unlink("uploads/" + deleteBlogphoto[0].photo, (err) => {
+    console.log(err);
+  });
 
   try {
     await blogModel.findByIdAndDelete(id);

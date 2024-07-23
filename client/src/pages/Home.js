@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 const Home = () => {
   const navigate = useNavigate();
+
+  // logout
   const logOut = async () => {
     try {
       const { data } = await axios.get("/users/logout");
@@ -17,7 +19,7 @@ const Home = () => {
       console.log(error.respomse.data.message);
     }
   };
-
+  // user profile
   const [userInfo, setUserInfo] = useState("");
   useEffect(() => {
     async function lorem() {
@@ -25,6 +27,70 @@ const Home = () => {
     }
     lorem();
   }, []);
+
+  // blog qoshish
+  const [blog, setBlog] = useState({
+    title: "",
+    description: "",
+    photo: "",
+  });
+  const [formData, setFormData] = useState("");
+
+  const upload = ({ target: { files } }) => {
+    let data = new FormData();
+    // data.append("files", files);
+    data.append("title", blog.title);
+    data.append("description", blog.description);
+    data.append("photo", files[0]);
+
+    setFormData(data);
+  };
+  const handleChange = (prop) => (event) => {
+    setBlog({ ...blog, [prop]: event.target.value });
+  };
+  const Submit = async (e) => {
+    e.preventDefault();
+    try {
+      const { data } = await axios.post("/blog/add", formData);
+      toast.success(data.message);
+      setTimeout(() => {
+        window.location.reload(false);
+      }, 1500);
+    } catch (error) {
+      console.log(error.response.data.message);
+      toast.success(error.response.data.message);
+    }
+  };
+
+  // bloglarni korish
+  const [postlar, setPostlar] = useState([]);
+
+  useEffect(() => {
+    async function lorem() {
+      let res = await axios.get("/blog/blogs");
+
+      setPostlar(res.data.getData);
+    }
+    lorem();
+  }, []);
+
+  // delete blog
+  const Delete = async (id) => {
+    try {
+      let { data } = await axios.delete(`/blog/delete/${id}  `);
+      if (data.success === true) {
+        toast.success(data.message);
+      }
+      window.location.reload(false);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  // update
+  const Update = (elem) => {
+    localStorage.setItem("postlar", JSON.stringify(elem));
+    navigate(`/update/${elem._id}`);
+  };
   return (
     <>
       <div classNameName="row">
@@ -40,21 +106,126 @@ const Home = () => {
               id="navbarScroll"
             >
               <h2>{userInfo.userName}</h2>
-              <div classNameName="btn btn-info" onClick={logOut}>
+              <div className="btn btn-info" onClick={logOut}>
                 LogOut
               </div>
+              <button
+                type="button"
+                className="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#exampleModal"
+              >
+                Post Qo'shish
+              </button>
             </div>
           </div>
         </nav>
       </div>
-      <p>
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam ea
-        suscipit accusamus recusandae nobis quibusdam quos, blanditiis aliquid,
-        velit labore ducimus, enim ratione architecto iste quae temporibus odit
-        eligendi deleniti. Lorem ipsum dolor sit amet, consectetur adipisicing
-        elit. Quod harum id dolorum aperiam optio placeat nisi aut nam, ipsam
-        quo sit qui modi beatae suscipit sunt quibusdam nemo officia voluptas.
-      </p>
+      <div className="row">
+        <div className="col"></div>
+        <div className="col">
+          <div
+            className="modal fade"
+            id="exampleModal"
+            tabindex="-1"
+            aria-labelledby="exampleModalLabel"
+            aria-hidden="true"
+          >
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title" id="exampleModalLabel">
+                    Po'st qo'shish
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <form onSubmit={Submit}>
+                    <div className="row g-3">
+                      <div className="col-12 col-sm-6">
+                        <input
+                          type="text"
+                          value={blog.title}
+                          onChange={handleChange("title")}
+                          className="form-control bg-white border-0"
+                          placeholder="title Name"
+                          style={{ height: "55px" }}
+                        />
+                      </div>
+                      <div className="col-12 col-sm-6">
+                        <input
+                          type="text"
+                          value={blog.description}
+                          onChange={handleChange("description")}
+                          className="form-control bg-white border-0"
+                          placeholder="post Description"
+                          style={{ height: "55px" }}
+                        />
+                        {/* <textarea name="comment" placeholder='Description'>sd</textarea> */}
+                      </div>
+
+                      <div className="col-12 col-sm-6">
+                        <input
+                          type="file"
+                          onChange={upload}
+                          className="form-control bg-white border-0"
+                          placeholder="Doctor Image"
+                          style={{ height: "55px" }}
+                        />
+                      </div>
+
+                      <div className="col-12">
+                        <button
+                          className="btn btn-primary w-100 py-3"
+                          type="submit"
+                        >
+                          Qo'shish
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="container">
+        <div className="row">
+          {postlar.map((elem, index) => {
+            return (
+              <div className="card" style={{ width: "18rem" }} key={index + 1}>
+                <img
+                  src={"http://localhost:5005/uploads/" + elem.photo}
+                  className="card-img-top"
+                  alt="..."
+                />
+                <div className="card-body">
+                  <h5 className="card-title">{elem.title}</h5>
+                  <p className="card-text">{elem.description}</p>
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => Delete(elem._id)}
+                  >
+                    DELETE
+                  </button>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => Update(elem)}
+                  >
+                    Update
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </>
   );
 };

@@ -73,15 +73,15 @@ const signIn = async (req, res) => {
     // console.log(token);
     res.cookie("token", token, {
       httpOnly: true,
-      maxAge: 1000 * 60 * 60,
-      expires: new Date(Date.now() + 1000 * 90 * 90 * 90),
+      maxAge: 1000 * 60 * 60 * 60,
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 60),
     });
     // res.redirect("/");
 
     res.status(200).json({
       success: true,
       message: "login dan o'tdi",
-      user,
+
       token,
     });
   } catch (error) {
